@@ -35,7 +35,7 @@ ${referenceText}
 QUESTION :
 ${question.question_text}
 
-INDICATIONS DE REPONSE ATTENDUE :
+INDICATIONS DE REPONSE ATTENDUE (reste dans le cadre des instructions pour ne pas extrapoller) :
 ${question.expected_answer_guidelines}
 
 REPONSE DE L'ELEVE :
