@@ -42,7 +42,33 @@ export default async function SubjectPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <SubjectView subject={subject} studentName={prenom} />
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Sujet de droit</h1>
+          <p className="text-muted-foreground">
+            Bienvenue {prenom} ! Lisez attentivement le texte puis repondez
+            aux questions.
+          </p>
+        </div>
+
+        <div className="rounded-xl border bg-card text-card-foreground shadow">
+          <div className="flex flex-col space-y-1.5 p-6">
+            <h2 className="font-semibold leading-none tracking-tight">
+              Texte de reference
+            </h2>
+          </div>
+          <div className="p-6 pt-0">
+            <div
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: subject.reference_text }}
+            />
+          </div>
+        </div>
+
+        <hr className="shrink-0 bg-border h-[1px] w-full" />
+
+        <SubjectView subject={subject} studentName={prenom} />
+      </div>
     </div>
   );
 }
