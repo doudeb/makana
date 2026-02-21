@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Makana
 
-## Getting Started
+Plateforme en ligne d'aide a la correction de sujets de droit en Terminale STMG. L'IA Gemini analyse les reponses des eleves et les guide avec un score et des commentaires pedagogiques.
 
-First, run the development server:
+## Stack technique
+
+- **Next.js 16** (App Router, TypeScript strict)
+- **Supabase** (PostgreSQL + Auth)
+- **Google Gemini 2.5 Flash** (analyse IA)
+- **shadcn/ui + Tailwind CSS v4**
+- **TipTap** (editeur WYSIWYG)
+- **Zod** + **react-hook-form** (validation)
+
+## Fonctionnalites
+
+### Espace Admin (`/admin`)
+- Authentification par email/mot de passe (Supabase Auth)
+- Dashboard avec liste des sujets
+- Creation/edition de sujets avec editeur WYSIWYG
+- Import de PDF (extraction texte cote client)
+- Generation automatique de codes d'acces (ex: `monk-horace-42`)
+
+### Espace Eleve (`/`)
+- Acces par code du sujet + prenom
+- Affichage du texte de reference (HTML formate)
+- Reponse question par question (soumission individuelle)
+- Feedback IA avec score en pourcentage (0-100%)
+- Possibilite de modifier et resoumettre chaque reponse
+
+## Installation
+
+```bash
+npm install
+```
+
+### Variables d'environnement
+
+Creer un fichier `.env.local` :
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_anon_key
+SUPABASE_SERVICE_ROLE_KEY=votre_service_role_key
+GEMINI_API_KEY=votre_gemini_api_key
+```
+
+### Base de donnees
+
+Executer la migration SQL dans votre projet Supabase :
+
+```
+supabase/migrations/001_initial_schema.sql
+```
+
+### Lancer en dev
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Deployer sur Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx vercel --prod
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Configurer les variables d'environnement dans le dashboard Vercel.
 
-## Learn More
+## Structure du projet
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── page.tsx                      # Accueil eleve
+│   ├── sujet/[code]/page.tsx         # Vue sujet + reponses
+│   ├── admin/
+│   │   ├── login/page.tsx            # Login admin
+│   │   ├── page.tsx                  # Dashboard
+│   │   └── sujets/                   # Creation/edition
+│   └── api/
+│       ├── subjects/                 # CRUD sujets
+│       └── submit/route.ts           # Soumission + analyse IA
+├── components/
+│   ├── ui/                           # shadcn/ui + WYSIWYG
+│   ├── admin/                        # Composants admin
+│   └── student/                      # Composants eleve
+├── lib/
+│   ├── supabase/                     # Clients Supabase
+│   ├── gemini.ts                     # Client Gemini + prompt
+│   ├── code-generator.ts             # Generation codes
+│   └── schemas/                      # Schemas Zod
+├── data/
+│   ├── french-words.ts               # Mots pour les codes
+│   └── interfaces/                   # Types TypeScript
+└── middleware.ts                     # Protection routes admin
+```

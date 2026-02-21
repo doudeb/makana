@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ReactMarkdown from "react-markdown";
 import type { Question } from "@/data/interfaces/database";
 import type { AnswerFeedback } from "@/data/interfaces/types";
 
@@ -135,8 +136,8 @@ export function AnswerForm({
             </CardHeader>
             <CardContent className="space-y-3">
               {fb && !isEditing && (
-                <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm whitespace-pre-wrap">{fb.feedback}</p>
+                <div className="rounded-md bg-muted p-4 prose prose-sm max-w-none">
+                  <ReactMarkdown>{fb.feedback}</ReactMarkdown>
                 </div>
               )}
               {fb && !isEditing && (
