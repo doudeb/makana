@@ -15,6 +15,13 @@ interface AnswerFormProps {
   questions: Question[];
 }
 
+function scoreBadge(score: number) {
+  if (score >= 70) return { variant: "default" as const, label: `${score}%` };
+  if (score >= 40)
+    return { variant: "secondary" as const, label: `${score}%` };
+  return { variant: "destructive" as const, label: `${score}%` };
+}
+
 export function AnswerForm({
   subjectId,
   studentName,
@@ -73,7 +80,6 @@ export function AnswerForm({
 
       const result = await res.json();
 
-      // Store the submission ID for subsequent answers
       if (!submissionId) {
         setSubmissionId(result.submission_id);
       }
@@ -82,7 +88,7 @@ export function AnswerForm({
         ...prev,
         [questionId]: {
           question_id: result.question_id,
-          is_valid: result.is_valid,
+          score: result.score,
           feedback: result.feedback,
         },
       }));
@@ -117,9 +123,9 @@ export function AnswerForm({
                 <CardTitle className="text-base">
                   Question {question.display_order}
                 </CardTitle>
-                {fb && fb.is_valid !== null && (
-                  <Badge variant={fb.is_valid ? "default" : "destructive"}>
-                    {fb.is_valid ? "Valide" : "A retravailler"}
+                {fb && fb.score !== null && (
+                  <Badge variant={scoreBadge(fb.score).variant}>
+                    {scoreBadge(fb.score).label}
                   </Badge>
                 )}
               </div>
@@ -133,7 +139,7 @@ export function AnswerForm({
                   <p className="text-sm whitespace-pre-wrap">{fb.feedback}</p>
                 </div>
               )}
-              {fb && !isEditing && !fb.is_valid && (
+              {fb && !isEditing && (
                 <Button
                   type="button"
                   variant="outline"

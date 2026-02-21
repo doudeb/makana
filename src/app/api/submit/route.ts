@@ -71,7 +71,6 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("Gemini error:", err);
-    // Fallback: save without AI feedback
     await admin.from("answers").insert({
       submission_id: submissionId,
       question_id: parsed.data.question_id,
@@ -83,7 +82,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       submission_id: submissionId,
       question_id: parsed.data.question_id,
-      is_valid: null,
+      score: null,
       feedback: "L'analyse IA est temporairement indisponible.",
     });
   }
@@ -94,7 +93,7 @@ export async function POST(request: Request) {
     question_id: parsed.data.question_id,
     student_answer: parsed.data.student_answer,
     ai_feedback: feedback.feedback,
-    is_valid: feedback.is_valid,
+    is_valid: feedback.score >= 50,
   });
 
   if (answerError) {
@@ -107,7 +106,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     submission_id: submissionId,
     question_id: feedback.question_id,
-    is_valid: feedback.is_valid,
+    score: feedback.score,
     feedback: feedback.feedback,
   });
 }

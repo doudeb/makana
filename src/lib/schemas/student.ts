@@ -19,7 +19,7 @@ export type SingleAnswerData = z.infer<typeof singleAnswerSchema>;
 
 export const aiFeedbackSchema = z.object({
   question_id: z.string(),
-  is_valid: z.boolean(),
+  score: z.number().min(0).max(100),
   feedback: z.string(),
 });
 

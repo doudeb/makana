@@ -6,7 +6,7 @@ export type SubjectWithQuestions = Subject & {
 
 export type AnswerFeedback = {
   question_id: string;
-  is_valid: boolean;
+  score: number;
   feedback: string;
 };
 

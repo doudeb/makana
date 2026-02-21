@@ -11,7 +11,7 @@ interface QuestionForAI {
 
 interface AIFeedbackItem {
   question_id: string;
-  is_valid: boolean;
+  score: number;
   feedback: string;
 }
 
@@ -23,8 +23,10 @@ export async function analyzeAnswer(
 
 REGLES IMPORTANTES :
 - Tu ne donnes JAMAIS la reponse directement
-- Si la reponse est correcte : valide-la avec des encouragements et explique pourquoi c'est juste
-- Si la reponse est incorrecte ou incomplete : donne des pistes de reflexion pour guider l'eleve vers la bonne reponse, en te basant sur le texte de reference
+- Attribue un score de 0 a 100 selon la qualite de la reponse
+- Si la reponse est bonne (score >= 70) : valide-la avec des encouragements et explique pourquoi c'est juste
+- Si la reponse est partielle (score 30-69) : reconnais les elements justes et donne des pistes pour completer
+- Si la reponse est insuffisante (score < 30) : donne des pistes de reflexion pour guider l'eleve vers la bonne reponse, en te basant sur le texte de reference
 - Sois bienveillant, pedagogique et encourageant
 - Utilise un langage clair et accessible pour des eleves de Terminale
 - Fais reference aux elements precis du texte de reference quand c'est pertinent
@@ -44,12 +46,12 @@ ${question.student_answer}
 Reponds en JSON avec exactement ce format :
 {
   "question_id": "${question.question_id}",
-  "is_valid": true ou false,
+  "score": un nombre entre 0 et 100,
   "feedback": "ton commentaire pedagogique"
 }`;
 
   const response = await genai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash-preview-05-20",
     contents: prompt,
     config: {
       responseMimeType: "application/json",

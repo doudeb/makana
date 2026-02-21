@@ -6,5 +6,5 @@ export const FRENCH_WORDS = [
   "monk",
   "john",
   "art",
-  "orace",
+  "horace",
 ] as const;
