@@ -1,10 +1,7 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 
-// Use the bundled worker
-GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+// Use the worker copied to public/ by postinstall script
+GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 export async function extractTextFromPdf(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();

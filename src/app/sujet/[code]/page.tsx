@@ -44,7 +44,7 @@ export default async function SubjectPage({ params, searchParams }: PageProps) {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Sujet de droit</h1>
+          <h1 className="text-2xl font-bold">Sujet</h1>
           <p className="text-muted-foreground">
             Bienvenue {prenom} ! Lisez attentivement le texte puis repondez
             aux questions.

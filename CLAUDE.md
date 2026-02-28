@@ -2,7 +2,7 @@
 
 ## Projet
 
-Makana est une plateforme d'aide a la correction de sujets de droit en Terminale STMG. Deux espaces : admin (gestion sujets) et eleve (reponses + feedback IA).
+Makana est une plateforme d'aide a la correction de sujets en Terminale STMG. Deux espaces : admin (gestion sujets) et eleve (reponses + feedback IA).
 
 ## Commandes
 

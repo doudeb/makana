@@ -141,7 +141,7 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
               <Wysiwyg
                 content={field.value}
                 onChange={field.onChange}
-                placeholder="Collez ici le texte de reference du sujet de droit..."
+                placeholder="Collez ici le texte de reference du sujet..."
               />
             )}
           />

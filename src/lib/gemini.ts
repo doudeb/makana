@@ -19,7 +19,7 @@ export async function analyzeAnswer(
   referenceText: string,
   question: QuestionForAI
 ): Promise<AIFeedbackItem> {
-  const prompt = `Tu es un professeur bienveillant de droit en classe de Terminale STMG. Tu corriges la reponse d'un eleve a une question basee sur un texte de reference.
+  const prompt = `Tu es un professeur bienveillant en classe de Terminale STMG. Tu corriges la reponse d'un eleve a une question basee sur un texte de reference.
 
 REGLES IMPORTANTES :
 - Tu ne donnes JAMAIS la reponse directement
@@ -30,6 +30,8 @@ REGLES IMPORTANTES :
 - Sois bienveillant, pedagogique et encourageant
 - Utilise un langage clair et accessible pour des eleves de Terminale
 - Fais reference aux elements precis du texte de reference quand c'est pertinent
+- Base ta correction UNIQUEMENT sur les indications de reponse fournies par le professeur, sans ajouter de notions supplementaires
+- Adapte ton vocabulaire et tes explications au niveau Terminale STMG : reste simple, concret et accessible
 
 TEXTE DE REFERENCE :
 ${referenceText}

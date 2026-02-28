@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Makana - Aide a la correction de droit STMG",
-  description: "Plateforme d'aide a la correction de sujets de droit en Terminale STMG",
+  title: "Makana - Aide a la correction STMG",
+  description: "Plateforme d'aide a la correction de sujets en Terminale STMG",
 };
 
 export default function RootLayout({

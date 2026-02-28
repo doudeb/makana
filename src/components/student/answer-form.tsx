@@ -17,10 +17,9 @@ interface AnswerFormProps {
 }
 
 function scoreBadge(score: number) {
-  if (score >= 70) return { variant: "default" as const, label: `${score}%` };
-  if (score >= 40)
-    return { variant: "secondary" as const, label: `${score}%` };
-  return { variant: "destructive" as const, label: `${score}%` };
+  if (score > 80) return { className: "bg-green-600 text-white", label: `${score}%` };
+  if (score > 50) return { className: "bg-orange-500 text-white", label: `${score}%` };
+  return { className: "bg-red-600 text-white", label: `${score}%` };
 }
 
 export function AnswerForm({
@@ -125,7 +124,7 @@ export function AnswerForm({
                   Question {question.display_order}
                 </CardTitle>
                 {fb && fb.score !== null && (
-                  <Badge variant={scoreBadge(fb.score).variant}>
+                  <Badge className={scoreBadge(fb.score).className}>
                     {scoreBadge(fb.score).label}
                   </Badge>
                 )}

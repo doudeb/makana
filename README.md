@@ -1,6 +1,6 @@
 # Makana
 
-Plateforme en ligne d'aide a la correction de sujets de droit en Terminale STMG. L'IA Gemini analyse les reponses des eleves et les guide avec un score et des commentaires pedagogiques.
+Plateforme en ligne d'aide a la correction de sujets en Terminale STMG. L'IA Gemini analyse les reponses des eleves et les guide avec un score et des commentaires pedagogiques.
 
 ## Stack technique
 
