@@ -26,6 +26,7 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,25 +56,33 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
     if (!file) return;
 
     if (file.type !== "application/pdf") {
-      setError("Veuillez selectionner un fichier PDF");
+      setPdfError("Veuillez selectionner un fichier PDF");
       return;
     }
 
     setPdfLoading(true);
-    setError("");
+    setPdfError("");
 
     try {
-      const { extractTextFromPdf } = await import("@/lib/pdf-extract");
-      const text = await extractTextFromPdf(file);
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/pdf-extract", { method: "POST", body });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPdfError(data.error || "Erreur lors de la lecture du PDF");
+        return;
+      }
+
       // Convert plain text to HTML paragraphs
-      const html = text
+      const html = (data.text as string)
         .split(/\n\n+/)
         .filter((p) => p.trim())
         .map((p) => `<p>${p.trim()}</p>`)
         .join("");
       setValue("reference_text", html, { shouldValidate: true });
     } catch {
-      setError("Erreur lors de la lecture du PDF");
+      setPdfError("Erreur lors de la lecture du PDF");
     } finally {
       setPdfLoading(false);
       // Reset file input so the same file can be re-selected
@@ -145,9 +154,9 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
               />
             )}
           />
-          {errors.reference_text && (
+          {(errors.reference_text || pdfError) && (
             <p className="text-sm text-red-600 mt-1">
-              {errors.reference_text.message}
+              {pdfError || errors.reference_text?.message}
             </p>
           )}
         </CardContent>
