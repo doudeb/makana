@@ -25,6 +25,7 @@ export default function EditSubjectPage() {
       setData({
         id: subject.id,
         reference_text: subject.reference_text,
+        prompt_id: subject.prompt_id ?? "",
         questions: sorted.map((q: Question) => ({
           question_text: q.question_text,
           expected_answer_guidelines: q.expected_answer_guidelines,

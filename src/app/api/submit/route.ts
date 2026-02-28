@@ -63,12 +63,16 @@ export async function POST(request: Request) {
   // Call Gemini AI for this single answer
   let feedback;
   try {
-    feedback = await analyzeAnswer(subject.reference_text, {
-      question_id: parsed.data.question_id,
-      question_text: question.question_text,
-      expected_answer_guidelines: question.expected_answer_guidelines,
-      student_answer: parsed.data.student_answer,
-    });
+    feedback = await analyzeAnswer(
+      subject.reference_text,
+      {
+        question_id: parsed.data.question_id,
+        question_text: question.question_text,
+        expected_answer_guidelines: question.expected_answer_guidelines,
+        student_answer: parsed.data.student_answer,
+      },
+      subject.prompt_id
+    );
   } catch (err) {
     console.error("Gemini error:", err);
     await admin.from("answers").insert({

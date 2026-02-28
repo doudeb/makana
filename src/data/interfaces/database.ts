@@ -2,6 +2,16 @@ export interface Subject {
   id: string;
   reference_text: string;
   code: string;
+  prompt_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Prompt {
+  id: string;
+  name: string;
+  ai_prompt: string;
+  ai_model: string;
   created_at: string;
   updated_at: string;
 }

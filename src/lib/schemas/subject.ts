@@ -9,6 +9,7 @@ const questionSchema = z.object({
 
 export const subjectFormSchema = z.object({
   reference_text: z.string().min(1, "Le texte de reference est requis"),
+  prompt_id: z.string().uuid().optional().or(z.literal("")),
   questions: z
     .array(questionSchema)
     .length(4, "Il faut exactement 4 questions"),

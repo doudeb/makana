@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Wysiwyg } from "@/components/ui/wysiwyg";
 
+interface PromptOption {
+  id: string;
+  name: string;
+  ai_model: string;
+}
+
 interface SubjectFormProps {
   initialData?: SubjectFormData & { id?: string };
 }
@@ -28,7 +34,15 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [error, setError] = useState("");
+  const [prompts, setPrompts] = useState<PromptOption[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/prompts")
+      .then((res) => res.json())
+      .then((data) => setPrompts(data))
+      .catch(() => {});
+  }, []);
 
   const isEditing = !!initialData?.id;
 
@@ -112,6 +126,25 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Correcteur IA</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <select
+            {...register("prompt_id")}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">Correcteur par defaut</option>
+            {prompts.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.ai_model})
+              </option>
+            ))}
+          </select>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

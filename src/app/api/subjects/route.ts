@@ -57,7 +57,11 @@ export async function POST(request: Request) {
   // Insert subject
   const { data: subject, error: subjectError } = await admin
     .from("subjects")
-    .insert({ reference_text: parsed.data.reference_text, code })
+    .insert({
+      reference_text: parsed.data.reference_text,
+      code,
+      prompt_id: parsed.data.prompt_id || null,
+    })
     .select()
     .single();
 
