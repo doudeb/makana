@@ -1,14 +1,7 @@
-import { join } from "path";
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getDocument,
-  GlobalWorkerOptions,
-} from "pdfjs-dist/legacy/build/pdf.mjs";
+import { GoogleGenAI } from "@google/genai";
 
-GlobalWorkerOptions.workerSrc = join(
-  process.cwd(),
-  "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"
-);
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,35 +16,47 @@ export async function POST(req: NextRequest) {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await getDocument({
-      data: new Uint8Array(arrayBuffer),
-      useSystemFonts: true,
-      standardFontDataUrl: join(
-        process.cwd(),
-        "node_modules/pdfjs-dist/standard_fonts/"
-      ),
-    }).promise;
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    const pages: string[] = [];
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const text = content.items
-        .map((item) => ("str" in item ? item.str : ""))
-        .join(" ");
-      pages.push(text);
-    }
+    const response = await genai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                mimeType: "application/pdf",
+                data: base64,
+              },
+            },
+            {
+              text: `Extrais tout le texte de ce document PDF et retourne-le en HTML simple pour un editeur WYSIWYG.
 
-    const result = pages.join("\n\n");
+REGLES :
+- Utilise uniquement ces balises : <h2>, <h3>, <p>, <strong>, <em>, <u>, <ul>, <ol>, <li>
+- Conserve fidèlement la structure du document : titres, sous-titres, paragraphes, listes
+- Mets en <strong> les mots ou passages en gras dans le document original
+- Mets en <em> les mots ou passages en italique dans le document original
+- Ne modifie AUCUN mot du texte original
+- Pas de commentaire, pas d'introduction, pas de balises <html>, <body> ou <head>
+- Retourne directement le HTML, sans bloc de code markdown`,
+            },
+          ],
+        },
+      ],
+    });
 
-    if (!result.trim()) {
+    const text = response.text?.trim() ?? "";
+
+    if (!text) {
       return NextResponse.json(
-        { error: "Aucun texte extractible dans ce PDF. Verifiez que le PDF contient du texte et non des images scannees." },
+        { error: "Aucun texte extractible dans ce PDF" },
         { status: 422 }
       );
     }
 
-    return NextResponse.json({ text: result });
+    return NextResponse.json({ text });
   } catch {
     return NextResponse.json(
       { error: "Erreur lors de la lecture du PDF" },

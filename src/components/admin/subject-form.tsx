@@ -74,13 +74,7 @@ export function SubjectForm({ initialData }: SubjectFormProps) {
         return;
       }
 
-      // Convert plain text to HTML paragraphs
-      const html = (data.text as string)
-        .split(/\n\n+/)
-        .filter((p) => p.trim())
-        .map((p) => `<p>${p.trim()}</p>`)
-        .join("");
-      setValue("reference_text", html, { shouldValidate: true });
+      setValue("reference_text", data.text as string, { shouldValidate: true });
     } catch {
       setPdfError("Erreur lors de la lecture du PDF");
     } finally {
