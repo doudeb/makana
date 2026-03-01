@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
+import confetti from "canvas-confetti";
 import type { Question } from "@/data/interfaces/database";
 import type { AnswerFeedback } from "@/data/interfaces/types";
 
@@ -84,14 +85,67 @@ export function AnswerForm({
         setSubmissionId(result.submission_id);
       }
 
-      setFeedbacks((prev) => ({
-        ...prev,
-        [questionId]: {
-          question_id: result.question_id,
-          score: result.score,
-          feedback: result.feedback,
-        },
-      }));
+      const newFeedback = {
+        question_id: result.question_id,
+        score: result.score,
+        feedback: result.feedback,
+      };
+
+      setFeedbacks((prev) => {
+        const next = {
+          ...prev,
+          [questionId]: newFeedback,
+        };
+
+        // Check for celebrations
+        if (result.score === 100) {
+          const allOtherPerfect = questions.every((q) => {
+            if (q.id === questionId) return true;
+            return next[q.id]?.score === 100;
+          });
+
+          if (allOtherPerfect) {
+            // Massive celebration
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            const randomInRange = (min: number, max: number) =>
+              Math.random() * (max - min) + min;
+
+            const interval: NodeJS.Timeout = setInterval(function () {
+              const timeLeft = animationEnd - Date.now();
+
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
+
+              const particleCount = 50 * (timeLeft / duration);
+              // since particles fall down, start a bit higher than random
+              confetti({
+                ...defaults,
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+              });
+              confetti({
+                ...defaults,
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+              });
+            }, 250);
+          } else {
+            // Small celebration
+            confetti({
+              particleCount: 100,
+              spread: 70,
+              origin: { y: 0.6 },
+            });
+          }
+        }
+
+        return next;
+      });
+
       setEditing((prev) => {
         const next = { ...prev };
         delete next[questionId];
