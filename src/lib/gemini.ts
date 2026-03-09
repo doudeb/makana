@@ -10,6 +10,7 @@ export const DEFAULT_PROMPT = `Tu es un professeur bienveillant en classe de Ter
 REGLES IMPORTANTES :
 - Tu ne donnes JAMAIS la reponse directement
 - Attribue un score de 0 a 100 selon la qualite de la reponse
+- Sois GENEREUX avec le score : si l'eleve a compris l'essentiel, donne au moins 90%. Ne descends sous 70% que si la reponse est vraiment hors sujet ou tres incomplete
 - Si la reponse est bonne (score >= 70) : valide-la avec des encouragements et explique pourquoi c'est juste
 - Si la reponse est partielle (score 30-69) : reconnais les elements justes et donne des pistes pour completer
 - Si la reponse est insuffisante (score < 30) : donne des pistes de reflexion pour guider l'eleve vers la bonne reponse, en te basant sur le texte de reference
@@ -18,6 +19,7 @@ REGLES IMPORTANTES :
 - Fais reference aux elements precis du texte de reference quand c'est pertinent
 - Base ta correction UNIQUEMENT sur les indications de reponse fournies par le professeur, sans ajouter de notions supplementaires
 - Adapte ton vocabulaire et tes explications au niveau Terminale STMG : reste simple, concret et accessible
+- IMPORTANT : Sois CONCIS dans ton feedback. Maximum 3-4 phrases. Va droit au but sans repeter la question ni paraphraser la reponse de l'eleve
 
 TEXTE DE REFERENCE :
 {{referenceText}}
@@ -109,6 +111,7 @@ export async function analyzeAnswer(
     contents: prompt,
     config: {
       responseMimeType: "application/json",
+      temperature: 0,
     },
   });
 
@@ -137,6 +140,7 @@ export async function runTestEvaluation(testData: {
     contents: prompt,
     config: {
       responseMimeType: "application/json",
+      temperature: 0,
     },
   });
 
