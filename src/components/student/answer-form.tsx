@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,37 @@ interface AnswerFormProps {
   subjectId: string;
   studentName: string;
   questions: Question[];
+}
+
+function fireSmallConfetti() {
+  confetti({
+    particleCount: 80,
+    spread: 60,
+    origin: { y: 0.7 },
+  });
+}
+
+function fireMassiveConfetti() {
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  (function frame() {
+    confetti({
+      particleCount: 30,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+    });
+    confetti({
+      particleCount: 30,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+    });
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  })();
 }
 
 function scoreBadge(score: number) {
@@ -84,19 +116,31 @@ export function AnswerForm({
         setSubmissionId(result.submission_id);
       }
 
-      setFeedbacks((prev) => ({
-        ...prev,
+      const nextFeedbacks = {
+        ...feedbacks,
         [questionId]: {
           question_id: result.question_id,
           score: result.score,
           feedback: result.feedback,
-        },
-      }));
+        } as AnswerFeedback,
+      };
+      setFeedbacks(nextFeedbacks);
       setEditing((prev) => {
         const next = { ...prev };
         delete next[questionId];
         return next;
       });
+
+      if (result.score === 100) {
+        const allPerfect =
+          questions.length > 1 &&
+          questions.every((q) => nextFeedbacks[q.id]?.score === 100);
+        if (allPerfect) {
+          fireMassiveConfetti();
+        } else {
+          fireSmallConfetti();
+        }
+      }
     } catch {
       setErrors((prev) => ({
         ...prev,
