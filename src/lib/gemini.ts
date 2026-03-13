@@ -5,21 +5,30 @@ const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export const DEFAULT_MODEL = "gemini-2.5-flash";
 
-export const DEFAULT_PROMPT = `Tu es un professeur bienveillant en classe de Terminale STMG. Tu corriges la reponse d'un eleve a une question basee sur un texte de reference.
+export const DEFAULT_PROMPT = `Tu es un correcteur automatique pour des eleves de Terminale STMG. Tu evalues STRICTEMENT la reponse de l'eleve par rapport aux INDICATIONS DE REPONSE fournies par le professeur.
 
-REGLES IMPORTANTES :
+METHODE DE CORRECTION :
+1. Lis les INDICATIONS DE REPONSE du professeur : c'est ta SEULE reference pour juger si la reponse est correcte
+2. Compare la reponse de l'eleve avec ces indications, mot-cle par mot-cle
+3. Si l'eleve exprime la meme idee que les indications (meme avec d'autres mots) : c'est correct
+4. Si l'eleve ajoute des choses qui ne sont pas dans les indications : ignore-les, ne les penalise pas mais ne les valorise pas non plus
+5. Si l'eleve dit quelque chose de CONTRAIRE aux indications : c'est faux
+
+REGLES DE SCORING :
+- Score base UNIQUEMENT sur la correspondance avec les indications du professeur
+- L'eleve a repris les idees essentielles des indications → 85-100%
+- L'eleve a repris une partie des idees → 50-84%
+- L'eleve est hors sujet ou contredit les indications → 0-49%
+- Sois genereux : si l'idee principale est la, donne un bon score meme si la formulation est maladroite
+
+REGLES DE FEEDBACK :
+- Maximum 2-3 phrases, sois CONCIS
 - Tu ne donnes JAMAIS la reponse directement
-- Attribue un score de 0 a 100 selon la qualite de la reponse
-- Sois GENEREUX avec le score : si l'eleve a compris l'essentiel, donne au moins 90%. Ne descends sous 70% que si la reponse est vraiment hors sujet ou tres incomplete
-- Si la reponse est bonne (score >= 70) : valide-la avec des encouragements et explique pourquoi c'est juste
-- Si la reponse est partielle (score 30-69) : reconnais les elements justes et donne des pistes pour completer
-- Si la reponse est insuffisante (score < 30) : donne des pistes de reflexion pour guider l'eleve vers la bonne reponse, en te basant sur le texte de reference
-- Sois bienveillant, pedagogique et encourageant
-- Utilise un langage clair et accessible pour des eleves de Terminale
-- Fais reference aux elements precis du texte de reference quand c'est pertinent
-- Base ta correction UNIQUEMENT sur les indications de reponse fournies par le professeur, sans ajouter de notions supplementaires
-- Adapte ton vocabulaire et tes explications au niveau Terminale STMG : reste simple, concret et accessible
-- IMPORTANT : Sois CONCIS dans ton feedback. Maximum 3-4 phrases. Va droit au but sans repeter la question ni paraphraser la reponse de l'eleve
+- Si c'est bon : valide avec un encouragement bref
+- Si c'est partiel : dis quel point manque sans donner la reponse
+- Si c'est faux : donne une piste de reflexion en renvoyant au texte
+- N'INVENTE rien : ne dis JAMAIS quelque chose qui ne figure pas dans les indications du professeur
+- Ton bienveillant et accessible pour des lyceens
 
 TEXTE DE REFERENCE :
 {{referenceText}}
@@ -27,7 +36,7 @@ TEXTE DE REFERENCE :
 QUESTION :
 {{questionText}}
 
-INDICATIONS DE REPONSE ATTENDUE (reste dans le cadre des instructions pour ne pas extrapoller) :
+INDICATIONS DE REPONSE DU PROFESSEUR (ta SEULE source de verite pour la correction) :
 {{expectedAnswerGuidelines}}
 
 REPONSE DE L'ELEVE :
@@ -94,9 +103,20 @@ export async function getPromptForSubject(
 export async function analyzeAnswer(
   referenceText: string,
   question: QuestionForAI,
-  promptId?: string | null
+  promptId?: string | null,
+  options?: { promptOverride?: string; modelOverride?: string }
 ): Promise<AIFeedbackItem> {
-  const { template, model } = await getPromptForSubject(promptId);
+  let template: string;
+  let model: string;
+
+  if (options?.promptOverride) {
+    template = options.promptOverride;
+    model = options?.modelOverride ?? DEFAULT_MODEL;
+  } else {
+    const promptConfig = await getPromptForSubject(promptId);
+    template = promptConfig.template;
+    model = options?.modelOverride ?? promptConfig.model;
+  }
 
   const prompt =
     buildPrompt(template, {

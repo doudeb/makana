@@ -98,6 +98,7 @@ export async function POST(request: Request) {
     student_answer: parsed.data.student_answer,
     ai_feedback: feedback.feedback,
     is_valid: feedback.score >= 50,
+    score: feedback.score,
   });
 
   if (answerError) {
