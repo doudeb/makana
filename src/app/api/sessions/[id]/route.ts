@@ -73,10 +73,18 @@ export async function GET(
     answerRows = answers ?? [];
   }
 
+  // Deduplicate: keep only the latest answer per question_id
+  // PostgreSQL returns rows in insertion order, so last one wins
+  const dedupMap = new Map<string, (typeof answerRows)[number]>();
+  for (const a of answerRows) {
+    dedupMap.set(a.question_id, a);
+  }
+  const dedupedAnswers = Array.from(dedupMap.values());
+
   // Build answers with question info
   const questionsMap = new Map(subject.questions.map((q) => [q.id, q]));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join types are complex
-  const sessionAnswers = (answerRows)
+  const sessionAnswers = (dedupedAnswers)
     .map((a: any) => {
       const question = questionsMap.get(a.question_id);
       if (!question) return null;

@@ -31,19 +31,18 @@ export async function GET(request: NextRequest) {
 
   // Fetch answers for all submissions
   const submissionIds = (submissions ?? []).map((s) => s.id);
-  let answerRows: { submission_id: string; is_valid: boolean | null; score: number | null }[] = [];
+  let answerRows: { submission_id: string; question_id: string; is_valid: boolean | null; score: number | null }[] = [];
   if (submissionIds.length > 0) {
     // Try with score column first, fallback without if column doesn't exist yet
     const { data, error: ansErr } = await admin
       .from("answers")
-      .select("submission_id, is_valid, score")
+      .select("submission_id, question_id, is_valid, score")
       .in("submission_id", submissionIds);
 
     if (ansErr) {
-      // score column may not exist yet — retry without it
       const { data: fallbackData } = await admin
         .from("answers")
-        .select("submission_id, is_valid")
+        .select("submission_id, question_id, is_valid")
         .in("submission_id", submissionIds);
       answerRows = (fallbackData ?? []).map((a) => ({ ...a, score: null }));
     } else {
@@ -51,8 +50,16 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const answersMap = new Map<string, { count: number; valid: number; scoreSum: number; scoreCount: number }>();
+  // Deduplicate: keep only the latest answer per (submission_id, question_id)
+  // PostgreSQL returns rows in insertion order, so last one wins
+  const dedupMap = new Map<string, typeof answerRows[number]>();
   for (const a of answerRows) {
+    dedupMap.set(`${a.submission_id}:${a.question_id}`, a);
+  }
+  const dedupedAnswers = Array.from(dedupMap.values());
+
+  const answersMap = new Map<string, { count: number; valid: number; scoreSum: number; scoreCount: number }>();
+  for (const a of dedupedAnswers) {
     const entry = answersMap.get(a.submission_id) ?? { count: 0, valid: 0, scoreSum: 0, scoreCount: 0 };
     entry.count++;
     if (a.is_valid) entry.valid++;

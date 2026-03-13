@@ -60,11 +60,18 @@ export async function POST(
     return NextResponse.json({ error: "Aucune reponse trouvee" }, { status: 404 });
   }
 
+  // Deduplicate: keep only the latest answer per question_id
+  const dedupMap = new Map<string, (typeof answers)[number]>();
+  for (const a of answers) {
+    dedupMap.set(a.question_id, a);
+  }
+  const dedupedAnswers = answer_id ? answers : Array.from(dedupMap.values());
+
   const questionsMap = new Map(subject.questions.map((q) => [q.id, q]));
   const isTestMode = prompt_override != null;
 
   const results = [];
-  for (const answer of answers) {
+  for (const answer of dedupedAnswers) {
     const question = questionsMap.get(answer.question_id);
     if (!question) continue;
 
