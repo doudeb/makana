@@ -37,8 +37,9 @@ export async function POST(
     return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
   }
 
-  // Cast Supabase join — may need `as unknown as ...` if TS complains about the array type
-  const subject = submission.subjects as unknown as {
+  // Supabase returns the join as an object or array — handle both
+  const rawSubject = submission.subjects;
+  const subject = (Array.isArray(rawSubject) ? rawSubject[0] : rawSubject) as {
     id: string;
     reference_text: string;
     prompt_id: string | null;

@@ -28,7 +28,9 @@ export async function GET(
     return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
   }
 
-  const subject = submission.subjects as unknown as {
+  // Supabase returns the join as an object (many-to-one) or array — handle both
+  const rawSubject = submission.subjects;
+  const subject = (Array.isArray(rawSubject) ? rawSubject[0] : rawSubject) as {
     id: string;
     code: string;
     reference_text: string;
@@ -38,7 +40,7 @@ export async function GET(
 
   // Fetch prompt info if exists
   let promptInfo = null;
-  if (subject.prompt_id) {
+  if (subject?.prompt_id) {
     const { data: prompt } = await admin
       .from("prompts")
       .select("id, name, ai_prompt, ai_model")

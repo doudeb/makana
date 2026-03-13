@@ -36,10 +36,11 @@ export async function POST(
     return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
   }
 
-  // Cast Supabase join — may need `as unknown as ...` if TS complains
-  const subject = submission.subjects as unknown as { prompt_id: string | null };
+  // Supabase returns the join as an object or array — handle both
+  const rawSubject = submission.subjects;
+  const subject = (Array.isArray(rawSubject) ? rawSubject[0] : rawSubject) as { prompt_id: string | null };
 
-  if (!subject.prompt_id) {
+  if (!subject?.prompt_id) {
     return NextResponse.json(
       { error: "Aucun correcteur associe a ce sujet" },
       { status: 400 }
