@@ -19,6 +19,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Link href="/admin/prompts" className="text-muted-foreground hover:text-foreground">
                 Correcteurs IA
               </Link>
+              <Link href="/admin/sessions" className="text-muted-foreground hover:text-foreground">
+                Sessions
+              </Link>
             </nav>
           </div>
           <LogoutButton />
