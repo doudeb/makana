@@ -56,16 +56,27 @@ export async function GET(
     }
   }
 
-  // Fetch answers for this submission
-  const { data: answers } = await admin
+  // Fetch answers for this submission — fallback if score column doesn't exist yet
+  let answerRows: { id: string; question_id: string; student_answer: string; ai_feedback: string | null; score: number | null; is_valid: boolean | null }[] = [];
+  const { data: answers, error: ansErr } = await admin
     .from("answers")
     .select("id, question_id, student_answer, ai_feedback, score, is_valid")
     .eq("submission_id", id);
 
+  if (ansErr) {
+    const { data: fallbackData } = await admin
+      .from("answers")
+      .select("id, question_id, student_answer, ai_feedback, is_valid")
+      .eq("submission_id", id);
+    answerRows = (fallbackData ?? []).map((a: any) => ({ ...a, score: null }));
+  } else {
+    answerRows = answers ?? [];
+  }
+
   // Build answers with question info
   const questionsMap = new Map(subject.questions.map((q) => [q.id, q]));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join types are complex
-  const sessionAnswers = (answers ?? [])
+  const sessionAnswers = (answerRows)
     .map((a: any) => {
       const question = questionsMap.get(a.question_id);
       if (!question) return null;

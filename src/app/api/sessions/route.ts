@@ -31,15 +31,28 @@ export async function GET(request: NextRequest) {
 
   // Fetch answers for all submissions
   const submissionIds = (submissions ?? []).map((s) => s.id);
-  const { data: answers } = submissionIds.length > 0
-    ? await admin
+  let answerRows: { submission_id: string; is_valid: boolean | null; score: number | null }[] = [];
+  if (submissionIds.length > 0) {
+    // Try with score column first, fallback without if column doesn't exist yet
+    const { data, error: ansErr } = await admin
+      .from("answers")
+      .select("submission_id, is_valid, score")
+      .in("submission_id", submissionIds);
+
+    if (ansErr) {
+      // score column may not exist yet — retry without it
+      const { data: fallbackData } = await admin
         .from("answers")
-        .select("submission_id, is_valid, score")
-        .in("submission_id", submissionIds)
-    : { data: [] as { submission_id: string; is_valid: boolean | null; score: number | null }[] };
+        .select("submission_id, is_valid")
+        .in("submission_id", submissionIds);
+      answerRows = (fallbackData ?? []).map((a) => ({ ...a, score: null }));
+    } else {
+      answerRows = data ?? [];
+    }
+  }
 
   const answersMap = new Map<string, { count: number; valid: number; scoreSum: number; scoreCount: number }>();
-  for (const a of answers ?? []) {
+  for (const a of answerRows) {
     const entry = answersMap.get(a.submission_id) ?? { count: 0, valid: 0, scoreSum: 0, scoreCount: 0 };
     entry.count++;
     if (a.is_valid) entry.valid++;
