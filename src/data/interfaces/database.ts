@@ -38,4 +38,5 @@ export interface Answer {
   student_answer: string;
   ai_feedback: string | null;
   is_valid: boolean | null;
+  score: number | null;
 }
