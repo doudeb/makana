@@ -80,7 +80,8 @@ export async function GET(request: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join types are complex
   const sessions = (submissions ?? []).map((s: any) => {
-    const subject = s.subjects as { id: string; code: string; questions: { id: string }[] };
+    const rawSubject = s.subjects;
+    const subject = (Array.isArray(rawSubject) ? rawSubject[0] : rawSubject) as { id: string; code: string; questions: { id: string }[] };
     const questionCount = subject?.questions?.length ?? 0;
     const answerData = answersMap.get(s.id) ?? { count: 0, valid: 0, scoreSum: 0, scoreCount: 0 };
 

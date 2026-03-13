@@ -64,25 +64,47 @@ export async function PUT(
     );
   }
 
-  // Delete old questions and re-insert
-  await admin.from("questions").delete().eq("subject_id", id);
-
-  const questions = parsed.data.questions.map((q, i) => ({
-    subject_id: id,
-    question_text: q.question_text,
-    display_order: i + 1,
-    expected_answer_guidelines: q.expected_answer_guidelines,
-  }));
-
-  const { error: questionsError } = await admin
+  // Fetch existing questions to update in-place (preserves IDs and avoids cascade-deleting answers)
+  const { data: existingQuestions } = await admin
     .from("questions")
-    .insert(questions);
+    .select("id, display_order")
+    .eq("subject_id", id)
+    .order("display_order");
 
-  if (questionsError) {
-    return NextResponse.json(
-      { error: questionsError.message },
-      { status: 500 }
-    );
+  const existingByOrder = new Map(
+    (existingQuestions ?? []).map((q) => [q.display_order, q.id])
+  );
+
+  for (let i = 0; i < parsed.data.questions.length; i++) {
+    const q = parsed.data.questions[i];
+    const order = i + 1;
+    const existingId = existingByOrder.get(order);
+
+    if (existingId) {
+      // Update existing question in-place
+      await admin
+        .from("questions")
+        .update({
+          question_text: q.question_text,
+          expected_answer_guidelines: q.expected_answer_guidelines,
+        })
+        .eq("id", existingId);
+      existingByOrder.delete(order);
+    } else {
+      // Insert new question
+      await admin.from("questions").insert({
+        subject_id: id,
+        question_text: q.question_text,
+        display_order: order,
+        expected_answer_guidelines: q.expected_answer_guidelines,
+      });
+    }
+  }
+
+  // Delete questions that no longer exist (e.g. if question count was reduced)
+  const remainingIds = Array.from(existingByOrder.values());
+  if (remainingIds.length > 0) {
+    await admin.from("questions").delete().in("id", remainingIds);
   }
 
   return NextResponse.json({ success: true });
