@@ -42,22 +42,36 @@ export async function POST(request: Request) {
   let submissionId = parsed.data.submission_id;
 
   if (!submissionId) {
-    const { data: submission, error: submissionError } = await admin
+    // Look for an existing submission for this student + subject
+    const { data: existing } = await admin
       .from("submissions")
-      .insert({
-        subject_id: parsed.data.subject_id,
-        student_name: parsed.data.student_name,
-      })
-      .select()
+      .select("id")
+      .eq("subject_id", parsed.data.subject_id)
+      .eq("student_name", parsed.data.student_name)
+      .order("submitted_at", { ascending: false })
+      .limit(1)
       .single();
 
-    if (submissionError || !submission) {
-      return NextResponse.json(
-        { error: "Erreur lors de la soumission" },
-        { status: 500 }
-      );
+    if (existing) {
+      submissionId = existing.id;
+    } else {
+      const { data: submission, error: submissionError } = await admin
+        .from("submissions")
+        .insert({
+          subject_id: parsed.data.subject_id,
+          student_name: parsed.data.student_name,
+        })
+        .select()
+        .single();
+
+      if (submissionError || !submission) {
+        return NextResponse.json(
+          { error: "Erreur lors de la soumission" },
+          { status: 500 }
+        );
+      }
+      submissionId = submission.id;
     }
-    submissionId = submission.id;
   }
 
   // Call Gemini AI for this single answer
