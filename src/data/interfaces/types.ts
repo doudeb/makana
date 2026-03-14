@@ -69,6 +69,8 @@ export type SessionAnswer = {
   ai_feedback: string | null;
   score: number | null;
   is_valid: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 export type ReevalResult = {

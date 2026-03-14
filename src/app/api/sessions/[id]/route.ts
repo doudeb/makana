@@ -59,10 +59,10 @@ export async function GET(
   }
 
   // Fetch answers for this submission — fallback if score column doesn't exist yet
-  let answerRows: { id: string; question_id: string; student_answer: string; ai_feedback: string | null; score: number | null; is_valid: boolean | null }[] = [];
+  let answerRows: { id: string; question_id: string; student_answer: string; ai_feedback: string | null; score: number | null; is_valid: boolean | null; created_at: string | null; updated_at: string | null }[] = [];
   const { data: answers, error: ansErr } = await admin
     .from("answers")
-    .select("id, question_id, student_answer, ai_feedback, score, is_valid")
+    .select("id, question_id, student_answer, ai_feedback, score, is_valid, created_at, updated_at")
     .eq("submission_id", id);
 
   if (ansErr) {
@@ -70,7 +70,7 @@ export async function GET(
       .from("answers")
       .select("id, question_id, student_answer, ai_feedback, is_valid")
       .eq("submission_id", id);
-    answerRows = (fallbackData ?? []).map((a: any) => ({ ...a, score: null }));
+    answerRows = (fallbackData ?? []).map((a: any) => ({ ...a, score: null, created_at: null, updated_at: null }));
   } else {
     answerRows = answers ?? [];
   }
@@ -102,6 +102,8 @@ export async function GET(
         ai_feedback: a.ai_feedback as string | null,
         score: a.score as number | null,
         is_valid: a.is_valid as boolean | null,
+        created_at: a.created_at as string | null,
+        updated_at: a.updated_at as string | null,
       };
     })
     .filter((a): a is NonNullable<typeof a> => a !== null)

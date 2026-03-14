@@ -54,9 +54,17 @@ export function AnswerCard({ answer, sessionId, onUpdated }: AnswerCardProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <span className="text-sm text-muted-foreground">
-            Question {answer.question.display_order}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Question {answer.question.display_order}
+            </span>
+            {answer.created_at && (
+              <span className="text-xs text-muted-foreground">
+                {new Date(answer.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                {answer.updated_at && answer.updated_at !== answer.created_at && " (modifiee)"}
+              </span>
+            )}
+          </div>
           <h3 className="font-semibold mt-1">{answer.question.question_text}</h3>
         </div>
         <div className="flex items-center gap-2">
