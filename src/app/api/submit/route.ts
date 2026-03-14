@@ -54,6 +54,11 @@ export async function POST(request: Request) {
 
     if (existing) {
       submissionId = existing.id;
+      // Update submitted_at to reflect the latest activity
+      await admin
+        .from("submissions")
+        .update({ submitted_at: new Date().toISOString() })
+        .eq("id", submissionId);
     } else {
       const { data: submission, error: submissionError } = await admin
         .from("submissions")
