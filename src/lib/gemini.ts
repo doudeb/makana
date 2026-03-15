@@ -21,8 +21,16 @@ REGLES DE SCORING :
 - L'eleve est hors sujet ou contredit les indications → 0-49%
 - Sois genereux : si l'idee principale est la, donne un bon score meme si la formulation est maladroite
 
+DETECTION IA :
+- Analyse si la reponse semble redigee par une IA (ChatGPT, etc.) plutot que par un lyceen de Terminale STMG
+- Indices : zero faute d'orthographe, vocabulaire trop soutenu, formulation trop structuree/professionnelle, tournures impersonnelles, enumerations parfaites, longueur excessive
+- Un lyceen de STMG fait des fautes, utilise un langage simple, peut etre maladroit dans sa formulation
+- Si tu detectes un usage probable d'IA : mets "ai_detected" a true dans ta reponse JSON
+- Le score reste INCHANGE (on ne penalise pas), mais ajoute au DEBUT du feedback une remarque sarcastique et bienveillante pour les inciter a utiliser leur propre cerveau. Exemples de ton : "Dis donc, ton style a drôlement évolué depuis la dernière fois... 🤖", "C'est beau, c'est propre, c'est... pas toi ? 😏", "Je suis impressionné par ta maîtrise du français académique... ou celle de ton ami ChatGPT 👀"
+- Apres la remarque, donne quand meme le feedback normal
+
 REGLES DE FEEDBACK :
-- Maximum 2-3 phrases, sois CONCIS
+- Maximum 2-3 phrases, sois CONCIS (hors remarque IA le cas echeant)
 - Tu ne donnes JAMAIS la reponse directement
 - Si c'est bon : valide avec un encouragement bref
 - Si c'est partiel : dis quel point manque sans donner la reponse
@@ -60,6 +68,7 @@ interface AIFeedbackItem {
   question_id: string;
   score: number;
   feedback: string;
+  ai_detected?: boolean;
 }
 
 export function buildPrompt(template: string, vars: PromptVars): string {
@@ -75,7 +84,8 @@ function jsonInstruction(questionId: string): string {
 {
   "question_id": "${questionId}",
   "score": un nombre entre 0 et 100,
-  "feedback": "ton commentaire pedagogique"
+  "feedback": "ton commentaire pedagogique",
+  "ai_detected": true ou false
 }`;
 }
 
