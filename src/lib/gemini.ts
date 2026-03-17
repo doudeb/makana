@@ -107,7 +107,6 @@ function formatFeedback(raw: string, score: number): string {
     return [
       `✅ **Ce qui est bien :** ${positivePart}`,
       guidancePart ? `⚠️ **Ce qui manque :** ${guidancePart}` : null,
-      `💡 **Piste :** Relis attentivement les indications du professeur pour completer ta reponse. Courage ! 💪`,
     ]
       .filter(Boolean)
       .join("\n\n");
@@ -115,8 +114,10 @@ function formatFeedback(raw: string, score: number): string {
 
   return [
     `❌ **Attention :** ${positivePart}`,
-    guidancePart ? `💡 **Pour t'aider :** ${guidancePart}` : `💡 **Pour t'aider :** Relis attentivement le texte et les indications du professeur.`,
-  ].join("\n\n");
+    guidancePart ? `💡 **Pour t'aider :** ${guidancePart}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export async function getPromptForSubject(
