@@ -27,11 +27,11 @@ DETECTION IA :
 - FEEDBACK IA : Si ai_detected est true, ajoute APRÈS ton feedback pédagogique une ligne d'humour un peu piquant mais cool sur l'usage suspect d'un robot (ex: "Ton style est tellement pro qu'on dirait que tu as mangé un dictionnaire de droit ce matin... ou un processeur !").
 
 REGLES DE FEEDBACK :
-- Entre 3 et 6 phrases : assez detaille pour guider l'eleve, sans etre un cours magistral (hors remarque IA le cas echeant)
+- Entre 3 et 6 phrases, sois detaille mais pas un cours magistral (hors remarque IA le cas echeant)
 - Tu ne donnes JAMAIS la reponse directement
-- Si c'est bon : valide en expliquant POURQUOI c'est correct (quel raisonnement ou quel concept l'eleve a bien compris), puis encourage
-- Si c'est partiel : identifie ce qui est bien, puis indique clairement quel aspect ou quel concept manque en donnant une piste de reflexion (ex: "Relis le passage sur... et demande-toi quel impact cela a sur...")
-- Si c'est faux : explique pourquoi le raisonnement ne fonctionne pas, puis oriente vers la partie du texte ou du cours qui permet de trouver la bonne reponse (ex: "Attention, tu confonds X et Y. Reviens au texte, paragraphe sur...")
+- Si c'est bon : valide en expliquant POURQUOI c'est correct, puis encourage
+- Si c'est partiel : commence par ce qui est bien, puis dis quel point manque sans donner la reponse, puis donne une piste de reflexion en renvoyant au texte ou au cours
+- Si c'est faux : explique pourquoi le raisonnement ne fonctionne pas, puis oriente vers la partie du texte ou du cours a relire
 - N'INVENTE rien : ne dis JAMAIS quelque chose qui ne figure pas dans les indications du professeur
 - Ton bienveillant et accessible pour des lyceens, comme un prof qui prend le temps d'expliquer
 
@@ -84,6 +84,39 @@ function jsonInstruction(questionId: string): string {
   "feedback": "ton commentaire pedagogique",
   "ai_detected": true ou false
 }`;
+}
+
+function formatFeedback(raw: string, score: number): string {
+  const sentences = raw
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (sentences.length === 0) return raw;
+
+  if (score >= 80) {
+    return `✅ **Bien joue !** ${sentences.join("\n\n")}`;
+  }
+
+  // For partial/wrong: first ~half = positive, rest = guidance
+  const mid = Math.max(1, Math.ceil(sentences.length / 2));
+  const positivePart = sentences.slice(0, mid).join("\n\n");
+  const guidancePart = sentences.slice(mid).join("\n\n");
+
+  if (score >= 50) {
+    return [
+      `✅ **Ce qui est bien :** ${positivePart}`,
+      guidancePart ? `⚠️ **Ce qui manque :** ${guidancePart}` : null,
+      `💡 **Piste :** Relis attentivement les indications du professeur pour completer ta reponse. Courage ! 💪`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
+  return [
+    `❌ **Attention :** ${positivePart}`,
+    guidancePart ? `💡 **Pour t'aider :** ${guidancePart}` : `💡 **Pour t'aider :** Relis attentivement le texte et les indications du professeur.`,
+  ].join("\n\n");
 }
 
 export async function getPromptForSubject(
@@ -143,7 +176,9 @@ export async function analyzeAnswer(
   });
 
   const text = response.text ?? "";
-  return JSON.parse(text) as AIFeedbackItem;
+  const result = JSON.parse(text) as AIFeedbackItem;
+  result.feedback = formatFeedback(result.feedback, result.score);
+  return result;
 }
 
 export async function runTestEvaluation(testData: {
