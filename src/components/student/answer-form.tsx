@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,73 +85,70 @@ export function AnswerForm({
   const loadingQuestionRef = useRef(loadingQuestion);
   loadingQuestionRef.current = loadingQuestion;
 
-  const callbacks = useCallback(
-    () => ({
-      onStatus: (stage: string, message: string) => {
-        const qid = loadingQuestionRef.current;
-        if (qid) {
-          setStatusMessage((prev) => ({ ...prev, [qid]: message }));
-        }
-      },
-      onResult: (result: {
-        submission_id: string;
-        question_id: string;
-        score: number | null;
-        feedback: string;
-      }) => {
-        if (!submissionIdRef.current) {
-          setSubmissionId(result.submission_id);
-        }
+  const streamCallbacks = {
+    onStatus: (stage: string, message: string) => {
+      const qid = loadingQuestionRef.current;
+      if (qid) {
+        setStatusMessage((prev) => ({ ...prev, [qid]: message }));
+      }
+    },
+    onResult: (result: {
+      submission_id: string;
+      question_id: string;
+      score: number | null;
+      feedback: string;
+    }) => {
+      if (!submissionIdRef.current) {
+        setSubmissionId(result.submission_id);
+      }
 
-        const nextFeedbacks = {
-          ...feedbacksRef.current,
-          [result.question_id]: {
-            question_id: result.question_id,
-            score: result.score,
-            feedback: result.feedback,
-          } as AnswerFeedback,
-        };
-        setFeedbacks(nextFeedbacks);
-        setEditing((prev) => {
-          const next = { ...prev };
-          delete next[result.question_id];
-          return next;
-        });
+      const nextFeedbacks = {
+        ...feedbacksRef.current,
+        [result.question_id]: {
+          question_id: result.question_id,
+          score: result.score,
+          feedback: result.feedback,
+        } as AnswerFeedback,
+      };
+      setFeedbacks(nextFeedbacks);
+      setEditing((prev) => {
+        const next = { ...prev };
+        delete next[result.question_id];
+        return next;
+      });
+      setLoadingQuestion(null);
+      setStatusMessage((prev) => {
+        const next = { ...prev };
+        delete next[result.question_id];
+        return next;
+      });
+
+      if (result.score !== null && result.score >= 82) {
+        const allPerfect =
+          questions.length > 1 &&
+          questions.every((q) => (q.id in nextFeedbacks) && nextFeedbacks[q.id]?.score !== null && nextFeedbacks[q.id].score >= 82);
+        if (allPerfect) {
+          fireMassiveConfetti();
+        } else {
+          fireSmallConfetti();
+        }
+      }
+    },
+    onError: (message: string) => {
+      const qid = loadingQuestionRef.current;
+      if (qid) {
+        setErrors((prev) => ({ ...prev, [qid]: message }));
         setLoadingQuestion(null);
         setStatusMessage((prev) => {
           const next = { ...prev };
-          delete next[result.question_id];
+          delete next[qid];
           return next;
         });
+      }
+    },
+  };
 
-        if (result.score !== null && result.score >= 82) {
-          const allPerfect =
-            questions.length > 1 &&
-            questions.every((q) => (q.id in nextFeedbacks) && nextFeedbacks[q.id]?.score !== null && nextFeedbacks[q.id].score >= 82);
-          if (allPerfect) {
-            fireMassiveConfetti();
-          } else {
-            fireSmallConfetti();
-          }
-        }
-      },
-      onError: (message: string) => {
-        const qid = loadingQuestionRef.current;
-        if (qid) {
-          setErrors((prev) => ({ ...prev, [qid]: message }));
-          setLoadingQuestion(null);
-          setStatusMessage((prev) => {
-            const next = { ...prev };
-            delete next[qid];
-            return next;
-          });
-        }
-      },
-    }),
-    [questions]
-  );
-
-  const { submit } = useSubmitStream(callbacks());
+  const { submit } = useSubmitStream(streamCallbacks);
 
   function updateAnswer(questionId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));

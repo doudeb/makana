@@ -78,8 +78,14 @@ export async function GET(request: NextRequest) {
   let totalScoreCount = 0;
   let todayCount = 0;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join types are complex
-  const sessions = (submissions ?? []).map((s: any) => {
+  interface SubmissionRow {
+    id: string;
+    student_name: string;
+    submitted_at: string;
+    subject_id: string;
+    subjects: { id: string; code: string; questions: { id: string }[] } | { id: string; code: string; questions: { id: string }[] }[] | null;
+  }
+  const sessions = (submissions ?? []).map((s: SubmissionRow) => {
     const rawSubject = s.subjects;
     const subject = (Array.isArray(rawSubject) ? rawSubject[0] : rawSubject) as { id: string; code: string; questions: { id: string }[] };
     const questionCount = subject?.questions?.length ?? 0;

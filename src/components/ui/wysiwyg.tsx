@@ -104,7 +104,7 @@ export function Wysiwyg({
         <ToolbarButton
           active={editor.isActive("bulletList")}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          label="&bull;"
+          label={"\u2022"}
           title="Liste a puces"
         />
         <ToolbarButton
@@ -119,19 +119,19 @@ export function Wysiwyg({
         <ToolbarButton
           active={editor.isActive({ textAlign: "left" })}
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          label="&#8676;"
+          label={"\u21DC"}
           title="Aligner a gauche"
         />
         <ToolbarButton
           active={editor.isActive({ textAlign: "center" })}
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          label="&#8596;"
+          label={"\u2194"}
           title="Centrer"
         />
         <ToolbarButton
           active={editor.isActive({ textAlign: "right" })}
           onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          label="&#8677;"
+          label={"\u21DD"}
           title="Aligner a droite"
         />
       </div>
@@ -167,7 +167,8 @@ function ToolbarButton({
       )}
       onClick={onClick}
       title={title}
-      dangerouslySetInnerHTML={{ __html: label }}
-    />
+    >
+      {label}
+    </Button>
   );
 }

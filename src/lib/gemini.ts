@@ -1,7 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+export const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
 export const DEFAULT_MODEL = "gemini-2.5-flash";
 
@@ -61,11 +62,31 @@ interface QuestionForAI {
   student_answer: string;
 }
 
-interface AIFeedbackItem {
-  question_id: string;
-  score: number;
-  feedback: string;
-  ai_detected?: boolean;
+const aiFeedbackItemSchema = z.object({
+  question_id: z.string(),
+  score: z.number().min(0).max(100),
+  feedback: z.string(),
+  ai_detected: z.boolean().optional(),
+});
+
+type AIFeedbackItem = z.infer<typeof aiFeedbackItemSchema>;
+
+function parseAIResponse(text: string): AIFeedbackItem {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(
+      `L'IA a retourne une reponse invalide (JSON malformed): ${text.slice(0, 200)}`
+    );
+  }
+  const result = aiFeedbackItemSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `L'IA a retourne une reponse invalide: ${result.error.message}`
+    );
+  }
+  return result.data;
 }
 
 export function buildPrompt(template: string, vars: PromptVars): string {
@@ -177,7 +198,7 @@ export async function analyzeAnswer(
   });
 
   const text = response.text ?? "";
-  const result = JSON.parse(text) as AIFeedbackItem;
+  const result = parseAIResponse(text);
   result.feedback = formatFeedback(result.feedback, result.score);
   return result;
 }
@@ -208,5 +229,5 @@ export async function runTestEvaluation(testData: {
   });
 
   const text = response.text ?? "";
-  return JSON.parse(text) as AIFeedbackItem;
+  return parseAIResponse(text);
 }

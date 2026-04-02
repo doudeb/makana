@@ -16,10 +16,16 @@ export default function PromptsPage() {
 
   const fetchPrompts = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/prompts");
-    const data = await res.json();
-    setPrompts(data);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/prompts");
+      if (!res.ok) throw new Error("Erreur lors du chargement");
+      const data = await res.json();
+      setPrompts(data);
+    } catch (err) {
+      console.error("Fetch prompts error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

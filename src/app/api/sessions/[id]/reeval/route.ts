@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { reevalSchema } from "@/lib/schemas/session";
 import { analyzeAnswer } from "@/lib/gemini";
+import { VALID_SCORE_THRESHOLD } from "@/lib/constants";
 
 export async function POST(
   request: Request,
@@ -17,7 +18,12 @@ export async function POST(
     return NextResponse.json({ error: "Non autorise" }, { status: 401 });
   }
 
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Corps de requete JSON invalide" }, { status: 400 });
+  }
   const parsed = reevalSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -98,7 +104,7 @@ export async function POST(
         answer_id: answer.id,
         question_text: question.question_text,
         ai_feedback: feedback.feedback,
-        is_valid: feedback.score >= 50,
+        is_valid: feedback.score >= VALID_SCORE_THRESHOLD,
         score: feedback.score,
       };
 
@@ -108,7 +114,7 @@ export async function POST(
           .from("answers")
           .update({
             ai_feedback: feedback.feedback,
-            is_valid: feedback.score >= 50,
+            is_valid: feedback.score >= VALID_SCORE_THRESHOLD,
             score: feedback.score,
           })
           .eq("id", answer.id);

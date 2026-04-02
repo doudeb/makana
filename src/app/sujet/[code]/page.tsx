@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import DOMPurify from "isomorphic-dompurify";
 import { createClient } from "@/lib/supabase/server";
 import { SubjectView } from "@/components/student/subject-view";
 

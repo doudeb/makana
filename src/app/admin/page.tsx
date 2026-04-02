@@ -14,10 +14,16 @@ export default function AdminDashboardPage() {
 
   const fetchSubjects = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/subjects");
-    const data = await res.json();
-    setSubjects(data);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/subjects");
+      if (!res.ok) throw new Error("Erreur lors du chargement");
+      const data = await res.json();
+      setSubjects(data);
+    } catch (err) {
+      console.error("Fetch subjects error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

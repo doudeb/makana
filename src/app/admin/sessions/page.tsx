@@ -25,21 +25,32 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchSubjects = useCallback(async () => {
-    const res = await fetch("/api/subjects");
-    const data = await res.json();
-    setSubjects(data.map((s: Subject & { questions: unknown[] }) => ({ id: s.id, code: s.code })));
+    try {
+      const res = await fetch("/api/subjects");
+      if (!res.ok) throw new Error("Erreur lors du chargement");
+      const data = await res.json();
+      setSubjects(data.map((s: Subject & { questions: unknown[] }) => ({ id: s.id, code: s.code })));
+    } catch (err) {
+      console.error("Fetch subjects error:", err);
+    }
   }, []);
 
   const fetchSessions = useCallback(async (subjectId?: string) => {
     setLoading(true);
-    const url = subjectId
-      ? `/api/sessions?subject_id=${subjectId}`
-      : "/api/sessions";
-    const res = await fetch(url);
-    const data = await res.json();
-    setSessions(data.sessions);
-    setStats(data.stats);
-    setLoading(false);
+    try {
+      const url = subjectId
+        ? `/api/sessions?subject_id=${subjectId}`
+        : "/api/sessions";
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Erreur lors du chargement");
+      const data = await res.json();
+      setSessions(data.sessions);
+      setStats(data.stats);
+    } catch (err) {
+      console.error("Fetch sessions error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

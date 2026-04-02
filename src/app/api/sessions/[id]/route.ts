@@ -70,7 +70,7 @@ export async function GET(
       .from("answers")
       .select("id, question_id, student_answer, ai_feedback, is_valid")
       .eq("submission_id", id);
-    answerRows = (fallbackData ?? []).map((a: any) => ({ ...a, score: null, created_at: null, updated_at: null }));
+    answerRows = (fallbackData ?? []).map((a) => ({ ...a, score: null, created_at: null, updated_at: null }));
   } else {
     answerRows = answers ?? [];
   }
@@ -85,25 +85,24 @@ export async function GET(
 
   // Build answers with question info
   const questionsMap = new Map(subject.questions.map((q) => [q.id, q]));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join types are complex
-  const sessionAnswers = (dedupedAnswers)
-    .map((a: any) => {
+  const sessionAnswers = dedupedAnswers
+    .map((a) => {
       const question = questionsMap.get(a.question_id);
       if (!question) return null;
       return {
-        id: a.id as string,
+        id: a.id,
         question: {
           id: question.id,
           question_text: question.question_text,
           display_order: question.display_order,
           expected_answer_guidelines: question.expected_answer_guidelines,
         },
-        student_answer: a.student_answer as string,
-        ai_feedback: a.ai_feedback as string | null,
-        score: a.score as number | null,
-        is_valid: a.is_valid as boolean | null,
-        created_at: a.created_at as string | null,
-        updated_at: a.updated_at as string | null,
+        student_answer: a.student_answer,
+        ai_feedback: a.ai_feedback,
+        score: a.score,
+        is_valid: a.is_valid,
+        created_at: a.created_at,
+        updated_at: a.updated_at,
       };
     })
     .filter((a): a is NonNullable<typeof a> => a !== null)

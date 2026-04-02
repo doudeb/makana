@@ -29,7 +29,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Non autorise" }, { status: 401 });
   }
 
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Corps de requete JSON invalide" }, { status: 400 });
+  }
   const parsed = subjectFormSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
